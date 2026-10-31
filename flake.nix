@@ -1,3 +1,4 @@
+
 {
   description = "A flake for a Node.js development environment with pnpm and TypeScript support.";
 
@@ -9,14 +10,42 @@
 
   outputs = { nixpkgs, flake-utils, git-hooks, ... }: flake-utils.lib.eachDefaultSystem (system:
     let
-      pkgs = import nixpkgs { inherit system; };
+      pkgs = import nixpkgs {
+        inherit system;
+        overlays = [
+          (final: prev: {
+            # Semgrep requires MCP v1, which is incompatible with MCP v2.
+            # https://github.com/semgrep/semgrep/blob/v1.180.0/cli/pyproject.toml
+            semgrep =
+              if prev.lib.versionOlder prev.python3Packages.mcp.version "2.0" then
+                prev.semgrep
+              else if prev.python3Packages ? mcp_1 then
+                prev.semgrep.override {
+                  mcp = final.python3Packages.mcp_1;
+                }
+              else
+                throw "Semgrep requires MCP v1, but python3Packages.mcp_1 is unavailable.";
+          })
+        ];
+      };
+
       fixedNode = import ./nix/fixed-node.nix { inherit pkgs system; };
-      preCommit = import ./nix/pre-commit.nix { inherit pkgs git-hooks system fixedNode; src = ./.; };
+      # preCommit = import ./nix/pre-commit.nix { inherit pkgs git-hooks system fixedNode; src = ./.; };
+      preCommit = import ./nix/pre-commit.nix {
+        inherit pkgs git-hooks system fixedNode;
+        src = ./.;
+      };
+      preCommitCheck = import ./nix/pre-commit.nix {
+        inherit pkgs git-hooks system fixedNode;
+        src = ./.;
+        enableSemgrep = false;
+      };
     in
     {
       formatter = pkgs.nixfmt;
       checks = {
-        pre-commit = preCommit;
+        pre-commit = preCommitCheck;
+        semgrep-package = pkgs.semgrep;
       };
       devShells.default = pkgs.mkShell {
         packages = [
