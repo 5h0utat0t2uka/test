@@ -25,12 +25,12 @@
 let
   inherit (pkgs.stdenv.hostPlatform) isDarwin isLinux isAarch64 isx86_64;
 
-  # manifest = builtins.fromJSON (builtins.readFile ../package.json);
-  # nodeVersion = manifest.devEngines.runtime.version;
-  # pnpmVersion = manifest.devEngines.packageManager.version;
+  manifest = builtins.fromJSON (builtins.readFile ../package.json);
+  nodeVersion = manifest.devEngines.runtime.version;
+  pnpmVersion = manifest.devEngines.packageManager.version;
 
-  nodeVersion = "26.13.0";
-  pnpmVersion = "12.17.0";
+  # nodeVersion = "26.13.0";
+  # pnpmVersion = "12.17.0";
 
   nodePlatform =
     if isDarwin && isAarch64 then {
