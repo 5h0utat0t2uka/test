@@ -36,6 +36,13 @@
           echo "pnpm: $(pnpm -v)"
         '';
       };
+
+      devShells.ci = pkgs.mkShell {
+        packages = [
+          fixedNode.nodejs
+          fixedNode.pnpm
+        ];
+      };
     }
   );
 }

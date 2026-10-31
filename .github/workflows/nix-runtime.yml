@@ -31,11 +31,11 @@ jobs:
 
       - name: Verify Node.js and pnpm
         run: |
-          nix develop -c node --version
-          nix develop -c pnpm --version
+          nix develop .#ci -c node --version
+          nix develop .#ci -c pnpm --version
 
       - name: Install dependencies
-        run: nix develop -c pnpm install --frozen-lockfile
+        run: nix develop .#ci -c pnpm install --frozen-lockfile
 
       - name: Build
-        run: nix develop -c pnpm build
+        run: nix develop .#ci -c pnpm build
